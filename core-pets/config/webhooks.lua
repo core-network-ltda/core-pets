@@ -46,23 +46,48 @@ function Webhooks.onRemove(user_id, itemKey, qty)
     })
 end
 
-function Webhooks.onTrade(userIdA, userIdB, aOffer, bOffer)
-    local aItems, bItems = {}, {}
-    for _, item in ipairs(aOffer or {}) do
-        aItems[#aItems + 1] = tostring(item.qty) .. "x " .. item.item_key
+local function itemKeyList(items)
+    local out = {}
+    for _, item in ipairs(items or {}) do
+        out[#out + 1] = item.item_key
     end
-    for _, item in ipairs(bOffer or {}) do
-        bItems[#bItems + 1] = tostring(item.qty) .. "x " .. item.item_key
-    end
+    return #out > 0 and table.concat(out, "\n") or "—"
+end
+
+function Webhooks.onTradeProposal(fromUserId, toUserId, offer, request)
     sendWebhook(webhookURLs.trade, {
-        author = { name = "Troca realizada" },
+        author = { name = "Proposta de troca enviada" },
         fields = {
-            { name = "Jogador A", value = playerField(userIdA), inline = true },
-            { name = "Jogador B", value = playerField(userIdB), inline = true },
-            { name = "Oferta A",  value = "```" .. table.concat(aItems, "\n") .. "```", inline = false },
-            { name = "Oferta B",  value = "```" .. table.concat(bItems, "\n") .. "```", inline = false },
+            { name = "De",         value = playerField(fromUserId), inline = true },
+            { name = "Para",       value = playerField(toUserId),   inline = true },
+            { name = "Oferecendo", value = "```" .. itemKeyList(offer)   .. "```", inline = false },
+            { name = "Pedindo",    value = "```" .. itemKeyList(request) .. "```", inline = false },
         },
-        color = 3447003,
+        color = 10181046,
+    })
+end
+
+function Webhooks.onTradeAccepted(fromUserId, toUserId, offer, request)
+    sendWebhook(webhookURLs.trade, {
+        author = { name = "Troca aceita" },
+        fields = {
+            { name = "De",         value = playerField(fromUserId), inline = true },
+            { name = "Para",       value = playerField(toUserId),   inline = true },
+            { name = "Oferecido",  value = "```" .. itemKeyList(offer)   .. "```", inline = false },
+            { name = "Recebido",   value = "```" .. itemKeyList(request) .. "```", inline = false },
+        },
+        color = 3066993,
+    })
+end
+
+function Webhooks.onTradeDeclined(fromUserId, toUserId)
+    sendWebhook(webhookURLs.trade, {
+        author = { name = "Proposta de troca recusada" },
+        fields = {
+            { name = "De",   value = playerField(fromUserId), inline = true },
+            { name = "Para", value = playerField(toUserId),   inline = true },
+        },
+        color = 15158332,
     })
 end
 

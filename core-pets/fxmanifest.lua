@@ -16,6 +16,7 @@ client_scripts {
 }
 
 server_scripts {
+    "token.lua",
     "@oxmysql/lib/MySQL.lua",
     "@vrp/config/Item.lua",
     "config/functions.lua",
